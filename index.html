@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Farmers Fray - A modern browser MOBA × RTS hybrid game">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Farmers Fray</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Lobby Manager Overlay -->
+    <section id="lobbyManagerOverlay" class="lobby-manager-overlay hidden">
+        <div class="lobby-manager-panel">
+            <div class="lobby-manager-header">
+                <h2 id="lobbyManagerName" class="lobby-manager-title">Lobby</h2>
+                <button id="lobbyManagerLeaveBtn" class="menu-btn ghost">Leave Lobby</button>
+            </div>
+
+            <div class="lobby-manager-content">
+                <div id="lobbyManagerPlayers" class="lobby-manager-players">
+                    <!-- Players will be rendered here -->
+                </div>
+            </div>
+
+            <div class="lobby-manager-footer">
+                <button id="lobbyManagerStartBtn" class="menu-btn primary hidden">Start Game</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Menu Overlay -->
+    <section id="mainMenuOverlay" class="main-menu-overlay">
+        <div class="main-menu-panel">
+            <h1 class="main-menu-title">Farmers Fray</h1>
+            <p class="main-menu-subtitle">MOBA × RTS Hybrid</p>
+
+            <div class="main-menu-content">
+                <div class="main-menu-section">
+                    <h3 class="section-title">Player Profile</h3>
+                    <div class="player-name-form">
+                        <input type="text" id="playerNameInput" class="lobby-input" placeholder="Your Name" maxlength="20">
+                    </div>
+                </div>
+
+                <div class="main-menu-section">
+                    <h3 class="section-title">Create Lobby</h3>
+                    <div class="lobby-create-form">
+                        <input type="text" id="lobbyNameInput" class="lobby-input" placeholder="Lobby Name" maxlength="30">
+                        <button id="createLobbyBtn" class="menu-btn primary">Create Lobby</button>
+                    </div>
+                </div>
+
+                <div class="main-menu-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Available Lobbies</h3>
+                        <button id="refreshLobbiesBtn" class="menu-btn icon" title="Refresh">↻</button>
+                    </div>
+                    <div id="lobbyList" class="lobby-list">
+                        <div class="lobby-list-empty">No lobbies available. Create one to get started!</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-menu-footer">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator disconnected"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="scoreboard" class="hidden"></div>
+    <main class="hidden">
+        <canvas id="gameCanvas"></canvas>
+
+        <section id="minimap-container">
+            <canvas id="minimapCanvas"></canvas>
+        </section>
+
+        <section id="toprightUI">
+            <div class="resourceDisplay" aria-label="Resources">
+                <span class="label" aria-hidden="true"></span>
+                <span id="resourceValue" class="resourceValue">0</span>
+            </div>
+            <div class="supplyDisplay" aria-label="Supply">
+                <span class="label" aria-hidden="true"></span>
+                <span id="supplyValue" class="supplyValue">0/10</span>
+            </div>
+            <div class="timerDisplay" aria-label="Time">
+                <span class="label" aria-hidden="true"></span>
+                <span id="gameTimer" class="timerValue">00:00</span>
+            </div>
+        </section>
+
+        <section id="upgradeDisplay" class="hidden">
+            <!-- Team 1 (Players 1 & 2) -->
+            <div class="upgrade-section team-section" data-team="1">
+                <span class="upgrade-value" id="p1-armor">0</span>
+                <span class="upgrade-value" id="p1-attackDamage">0</span>
+                <span class="upgrade-value" id="p1-weaponRange">0</span>
+                <span class="upgrade-value" id="p1-healthRegen">0</span>
+                <span class="upgrade-value" id="p1-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p1-workerSupply">1</span>
+            </div>
+            <div class="upgrade-section team-section" data-team="1">
+                <span class="upgrade-value" id="p2-armor">0</span>
+                <span class="upgrade-value" id="p2-attackDamage">0</span>
+                <span class="upgrade-value" id="p2-weaponRange">0</span>
+                <span class="upgrade-value" id="p2-healthRegen">0</span>
+                <span class="upgrade-value" id="p2-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p2-workerSupply">1</span>
+            </div>
+            <!-- Team 2 (Players 3 & 4) -->
+            <div class="upgrade-section team-section" data-team="2">
+                <span class="upgrade-value" id="p3-armor">0</span>
+                <span class="upgrade-value" id="p3-attackDamage">0</span>
+                <span class="upgrade-value" id="p3-weaponRange">0</span>
+                <span class="upgrade-value" id="p3-healthRegen">0</span>
+                <span class="upgrade-value" id="p3-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p3-workerSupply">1</span>
+            </div>
+            <div class="upgrade-section team-section" data-team="2">
+                <span class="upgrade-value" id="p4-armor">0</span>
+                <span class="upgrade-value" id="p4-attackDamage">0</span>
+                <span class="upgrade-value" id="p4-weaponRange">0</span>
+                <span class="upgrade-value" id="p4-healthRegen">0</span>
+                <span class="upgrade-value" id="p4-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p4-workerSupply">1</span>
+            </div>
+            <!-- Team 3 (Players 5 & 6) -->
+            <div class="upgrade-section team-section" data-team="3">
+                <span class="upgrade-value" id="p5-armor">0</span>
+                <span class="upgrade-value" id="p5-attackDamage">0</span>
+                <span class="upgrade-value" id="p5-weaponRange">0</span>
+                <span class="upgrade-value" id="p5-healthRegen">0</span>
+                <span class="upgrade-value" id="p5-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p5-workerSupply">1</span>
+            </div>
+            <div class="upgrade-section team-section" data-team="3">
+                <span class="upgrade-value" id="p6-armor">0</span>
+                <span class="upgrade-value" id="p6-attackDamage">0</span>
+                <span class="upgrade-value" id="p6-weaponRange">0</span>
+                <span class="upgrade-value" id="p6-healthRegen">0</span>
+                <span class="upgrade-value" id="p6-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p6-workerSupply">1</span>
+            </div>
+            <!-- Team 4 (Players 7 & 8) -->
+            <div class="upgrade-section team-section" data-team="4">
+                <span class="upgrade-value" id="p7-armor">0</span>
+                <span class="upgrade-value" id="p7-attackDamage">0</span>
+                <span class="upgrade-value" id="p7-weaponRange">0</span>
+                <span class="upgrade-value" id="p7-healthRegen">0</span>
+                <span class="upgrade-value" id="p7-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p7-workerSupply">1</span>
+            </div>
+            <div class="upgrade-section team-section" data-team="4">
+                <span class="upgrade-value" id="p8-armor">0</span>
+                <span class="upgrade-value" id="p8-attackDamage">0</span>
+                <span class="upgrade-value" id="p8-weaponRange">0</span>
+                <span class="upgrade-value" id="p8-healthRegen">0</span>
+                <span class="upgrade-value" id="p8-movementSpeed">0</span>
+                <span class="upgrade-separator">|</span>
+                <span class="upgrade-value" id="p8-workerSupply">1</span>
+            </div>
+        </section>
+
+        <section id="playerControls" class="hidden">
+            <div class="team-group">
+                <div class="team-label">Team 1</div>
+                <button id="player1Btn" class="playerBtn active team1">Player 1 (1)</button>
+                <button id="player2Btn" class="playerBtn team1">Player 2 (2)</button>
+            </div>
+
+            <div class="team-group">
+                <div class="team-label">Team 2</div>
+                <button id="player3Btn" class="playerBtn team2">Player 3 (3)</button>
+                <button id="player4Btn" class="playerBtn team2">Player 4 (4)</button>
+            </div>
+
+            <div class="team-group">
+                <div class="team-label">Team 3</div>
+                <button id="player5Btn" class="playerBtn team3">Player 5 (5)</button>
+                <button id="player6Btn" class="playerBtn team3">Player 6 (6)</button>
+            </div>
+
+            <div class="team-group">
+                <div class="team-label">Team 4</div>
+                <button id="player7Btn" class="playerBtn team4">Player 7 (7)</button>
+                <button id="player8Btn" class="playerBtn team4">Player 8 (8)</button>
+            </div>
+        </section>
+
+        <section id="performanceMonitor" class="hidden">
+            <div class="monitorLine">FPS: <span id="fpsCounter">0</span></div>
+            <div class="monitorLine">Frame Time: <span id="frameTime">0</span>ms</div>
+            <div class="monitorLine">Memory: <span id="memoryUsage">0</span>MB</div>
+        </section>
+
+        <!-- Chat Overlay -->
+        <section id="chatOverlay">
+            <div id="chatMessages"></div>
+            <div id="chatInputContainer" class="hidden">
+                <span id="chatPrefix">[All]</span>
+                <input type="text" id="chatInput" placeholder="Type your message..." maxlength="200">
+            </div>
+        </section>
+
+        <!-- Pregame Pause Overlay -->
+        <section id="pregameOverlay" class="pregame-overlay hidden">
+            <div class="pregame-panel">
+                <h2 class="pregame-title">Waiting for Players</h2>
+
+                <div class="pregame-actions">
+                    <button id="pregameNotReadyBtn" class="pregame-btn ghost">Not Ready</button>
+                    <button id="pregameReadyBtn" class="pregame-btn outline">Ready</button>
+                    <button id="pregameGoBtn" class="pregame-btn solid">Let's Go!</button>
+                </div>
+
+                <p id="pregameCountdown" class="pregame-countdown"></p>
+
+                <div class="pregame-ready-wrap">
+                    <div id="pregameReadyList" class="pregame-ready-list"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Socket.io client - try CDN first, fallback to server -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // Fallback: if socket.io not loaded from CDN, try server
+        if (typeof io === 'undefined') {
+            const script = document.createElement('script');
+            script.src = '/socket.io/socket.io.js';
+            script.onerror = () => {
+                console.error('Socket.io client failed to load. Make sure the server is running on port 3000.');
+            };
+            document.head.appendChild(script);
+        }
+    </script>
+    <script type="module" src="/client/client-network.js"></script>
+    <script type="module" src="/client/main-menu.js"></script>
+    <script type="module" src="/client/lobby-manager.js"></script>
+    <script src="ui-system.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

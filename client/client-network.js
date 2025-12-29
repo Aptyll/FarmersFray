@@ -78,10 +78,15 @@ export class ClientNetwork {
             console.log('Connected to server');
             this.connected = true;
             this.reconnectAttempts = 0;
-            
+
             // Send queued inputs
             this.flushInputQueue();
-            
+
+            // Update UI connection status
+            if (window.mainMenu && window.mainMenu.updateConnectionStatus) {
+                window.mainMenu.updateConnectionStatus(true);
+            }
+
             if (this.onConnected) {
                 this.onConnected();
             }

@@ -2,8 +2,8 @@
 A fast-paced browser MOBA × RTS hybrid built entirely in Vanilla JavaScript.
 
 ## 🎮 Gameplay Design
-**MOBA-style victory:** have the last standing bunker to win.
-**RTS control:** select units, place buildings, and buy upgrades.
+- **MOBA-style victory:** have the last standing bunker to win.
+- **RTS control:** select units, place buildings, and buy upgrades.
 
 ## 🎯 Controls
 - **Mouse**:

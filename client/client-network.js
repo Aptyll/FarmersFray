@@ -26,16 +26,18 @@ export class ClientNetwork {
     }
 
     connect(serverUrl = null) {
-        // Default to localhost:3000, but allow override
+        // Default to current origin (for production) or localhost:3000 (for development)
         if (!serverUrl) {
-            // Try to detect if we're on a different port and adjust server URL
-            const currentPort = window.location.port;
-            if (currentPort && currentPort !== '3000') {
-                // If accessing via different port (e.g., VS Code Live Server on 5500),
-                // connect to the game server on port 3000
-                serverUrl = `http://localhost:3000`;
+            // Check if we're in production (Railway) or development
+            const isProduction = window.location.hostname !== 'localhost' &&
+                               !window.location.hostname.includes('127.0.0.1');
+
+            if (isProduction) {
+                // In production (Railway), connect to the same origin that served the page
+                serverUrl = window.location.origin;
             } else {
-                serverUrl = `http://${window.location.hostname}:3000`;
+                // In development, connect to localhost:3000
+                serverUrl = `http://localhost:3000`;
             }
         }
         if (this.socket && this.socket.connected) {

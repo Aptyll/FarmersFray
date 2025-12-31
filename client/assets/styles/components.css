@@ -1,99 +1,4 @@
-* {
-    box-sizing: border-box;
-}
-
-:root {
-    --primary-color: #4DA6FF;
-    --secondary-color: #FFD700;
-    --bg-dark: rgba(0, 0, 0, 0.6);
-    --border-color: rgba(255, 255, 255, 0.1);
-    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-body {
-    margin: 0;
-    overflow: hidden;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
-    background-attachment: fixed;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    width: 100%;
-    height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-main {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-}
-
-main.hidden {
-    display: none;
-}
-
-canvas {
-    display: block;
-    border: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    cursor: crosshair;
-    z-index: 1;
-}
-
-/* Smooth animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
-}
-
-@keyframes glow {
-    0%, 100% {
-        box-shadow: 0 0 10px currentColor;
-    }
-    50% {
-        box-shadow: 0 0 20px currentColor;
-    }
-}
+/* Component Styles */
 
 #playerControls {
     position: fixed;
@@ -1348,6 +1253,12 @@ canvas {
   padding-bottom: 16px;
 }
 
+.lobby-manager-header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .lobby-manager-title {
   margin: 0;
   font-size: 28px;
@@ -1524,6 +1435,13 @@ canvas {
   background: rgba(77, 166, 255, 0.2);
   color: #4DA6FF;
   border: 1px solid rgba(77, 166, 255, 0.4);
+}
+
+.lobby-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .lobby-player-status {

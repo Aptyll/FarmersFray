@@ -8,13 +8,14 @@ export class LobbyManager {
         this.playersContainer = document.getElementById('lobbyManagerPlayers');
         this.startGameBtn = document.getElementById('lobbyManagerStartBtn');
         this.leaveLobbyBtn = document.getElementById('lobbyManagerLeaveBtn');
-        
+
         this.currentLobbyState = null;
         this.isHost = false;
         this.myPlayerId = null;
         this.teamChangeCooldown = 0; // Timestamp when cooldown expires
 
         this.setupEventListeners();
+        this.setupNetworkCallbacks();
 
         // Start cooldown update interval
         this.cooldownInterval = setInterval(() => {
@@ -28,6 +29,23 @@ export class LobbyManager {
         }
         if (this.leaveLobbyBtn) {
             this.leaveLobbyBtn.addEventListener('click', () => this.handleLeaveLobby());
+        }
+    }
+
+    setupNetworkCallbacks() {
+        // Set up countdown callback for real-time updates
+        if (window.clientNetwork) {
+            window.clientNetwork.onCountdown = (seconds) => {
+                this.handleCountdownUpdate(seconds);
+            };
+        }
+    }
+
+    handleCountdownUpdate(seconds) {
+        // Update countdown seconds in current state for UI updates
+        if (this.currentLobbyState) {
+            this.currentLobbyState.countdownSeconds = seconds;
+            this.updateUI();
         }
     }
 
@@ -76,13 +94,14 @@ export class LobbyManager {
 
         // Update start button visibility
         if (this.startGameBtn) {
+            this.startGameBtn.classList.remove('hidden'); // Always show the button
+
             if (this.isHost) {
-                this.startGameBtn.classList.remove('hidden');
                 // Disable button if countdown is active or game is playing
                 const isCountdown = this.currentLobbyState.state === 'COUNTDOWN';
                 const isPlaying = this.currentLobbyState.state === 'PLAYING';
                 this.startGameBtn.disabled = isCountdown || isPlaying;
-                
+
                 if (isCountdown) {
                     this.startGameBtn.textContent = `Starting in ${this.currentLobbyState.countdownSeconds || 5}...`;
                 } else if (isPlaying) {
@@ -91,7 +110,18 @@ export class LobbyManager {
                     this.startGameBtn.textContent = 'Start Game';
                 }
             } else {
-                this.startGameBtn.classList.add('hidden');
+                // Non-host players: always disabled, show appropriate status
+                this.startGameBtn.disabled = true;
+                const isCountdown = this.currentLobbyState.state === 'COUNTDOWN';
+                const isPlaying = this.currentLobbyState.state === 'PLAYING';
+
+                if (isCountdown) {
+                    this.startGameBtn.textContent = `Starting in ${this.currentLobbyState.countdownSeconds || 5}...`;
+                } else if (isPlaying) {
+                    this.startGameBtn.textContent = 'Game In Progress';
+                } else {
+                    this.startGameBtn.textContent = 'Waiting for Host';
+                }
             }
         }
     }
@@ -292,10 +322,12 @@ export class LobbyManager {
             <div class="lobby-player-info">
                 <span class="lobby-player-name" style="color: ${playerColor}">player${player.playerId}</span>
             </div>
-            <div class="lobby-player-status">
-                <input type="checkbox" class="lobby-ready-checkbox" ${player.ready ? 'checked' : ''} ${!isMe ? 'disabled' : ''} title="${player.ready ? 'Mark Not Ready' : 'Mark Ready'}" style="--player-color: ${playerColor}">
+            <div class="lobby-player-controls">
+                ${this.isHost && !isMe ? '<button class="lobby-player-kick" title="Kick Player">Kick</button>' : ''}
+                <div class="lobby-player-status">
+                    <input type="checkbox" class="lobby-ready-checkbox" ${player.ready ? 'checked' : ''} ${!isMe ? 'disabled' : ''} title="${player.ready ? 'Mark Not Ready' : 'Mark Ready'}" style="--player-color: ${playerColor}">
+                </div>
             </div>
-            ${this.isHost && !isMe ? '<button class="lobby-player-kick" title="Kick Player">Kick</button>' : ''}
         `;
 
         // Add ready toggle checkbox handler (for current player only)

@@ -1,0 +1,203 @@
+/* UI System Styles */
+#ui-system {
+    /* sizing + theme (kept flat/minimal for performance) */
+    --cc-btn: 64px;
+    --cc-gap: 6px;
+    --cc-pad: 8px;
+    --cc-border: 3px;
+    --cc-bg: rgba(10, 10, 10, 0.92);
+    --cc-border-color: #666666;
+    --cc-accent: #4DA6FF; /* overridden per-player via setAccentColor() */
+
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    width: calc((var(--cc-btn) * 5) + (var(--cc-gap) * 4) + (var(--cc-pad) * 2) + (var(--cc-border) * 2));
+    background: transparent;
+    border: none;
+    padding: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 1000;
+}
+
+#ui-system.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+}
+
+#ui-page-tabs {
+    display: flex;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    align-self: stretch;
+    background: var(--cc-bg);
+    border-bottom: var(--cc-border) solid var(--cc-border-color); /* consistent minimap-style divider */
+}
+
+.ui-page-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--cc-bg);
+    border: var(--cc-border) solid var(--cc-border-color);
+    border-left-width: 0; /* avoid double borders between tabs */
+    border-bottom-width: 0; /* divider is handled by #ui-page-tabs */
+    border-radius: 0;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    color: rgba(255, 255, 255, 0.85);
+    user-select: none;
+}
+
+/* Match minimap-style frame (square, flush). Keep single border at far left. */
+.ui-page-tab:first-child {
+    border-left-width: var(--cc-border);
+}
+
+.ui-page-tab:hover {
+    background: rgba(20, 20, 20, 0.96);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.ui-page-tab.active {
+    background: rgba(16, 16, 16, 0.98);
+    border-top-color: var(--cc-accent);
+    color: #ffffff;
+}
+
+#ui-command-panel {
+    background: var(--cc-bg);
+    border: var(--cc-border) solid var(--cc-border-color);
+    border-top-width: 0; /* tabs provide the top frame border */
+    border-radius: 0;
+    padding: var(--cc-pad);
+    width: 100%;
+}
+
+.ui-page {
+    display: none;
+}
+
+.ui-page.active {
+    display: block;
+}
+
+.ui-button-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: var(--cc-gap);
+}
+
+.ui-grid-button {
+    width: var(--cc-btn);
+    height: var(--cc-btn);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    color: rgba(255, 255, 255, 0.92);
+    user-select: none;
+}
+
+.ui-grid-button.active {
+    border-color: var(--cc-accent);
+    background-color: rgba(77, 166, 255, 0.15);
+}
+
+.ui-grid-button:hover {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.ui-grid-button:active {
+    background: rgba(255, 255, 255, 0.10);
+    border-color: var(--cc-accent);
+}
+
+.ui-hotkey {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 800;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    z-index: 1;
+}
+
+.ui-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 800;
+    z-index: 1;
+}
+
+.ui-upgrade-level {
+    position: absolute;
+    bottom: 3px;
+    right: 4px;
+    font-size: 11px;
+    color: var(--cc-accent);
+    font-weight: 800;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    z-index: 1;
+}
+
+.ui-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    z-index: 10000;
+    pointer-events: none;
+    max-width: 220px;
+    animation: tooltipFadeIn 0.12s ease;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.upgrade-price {
+    color: #FFD700;
+    font-weight: bold;
+    text-shadow: none;
+}

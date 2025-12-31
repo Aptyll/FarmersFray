@@ -1,0 +1,16 @@
+/* Main Styles - Import all style modules */
+
+/* CSS Variables first */
+@import 'variables.css';
+
+/* Base layout and typography */
+@import 'base.css';
+
+/* Animations */
+@import 'animations.css';
+
+/* Component styles */
+@import 'components.css';
+
+/* UI System styles */
+@import 'ui-system.css';

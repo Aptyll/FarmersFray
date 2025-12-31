@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#1a1a2e">
     <title>Farmers Fray</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="client/assets/styles/main.css">
 </head>
 <body>
     <!-- Lobby Manager Overlay -->
@@ -15,17 +15,16 @@
         <div class="lobby-manager-panel">
             <div class="lobby-manager-header">
                 <h2 id="lobbyManagerName" class="lobby-manager-title">Lobby</h2>
-                <button id="lobbyManagerLeaveBtn" class="menu-btn ghost">Leave Lobby</button>
+                <div class="lobby-manager-header-buttons">
+                    <button id="lobbyManagerStartBtn" class="menu-btn primary hidden">Start Game</button>
+                    <button id="lobbyManagerLeaveBtn" class="menu-btn ghost">Leave Lobby</button>
+                </div>
             </div>
 
             <div class="lobby-manager-content">
                 <div id="lobbyManagerPlayers" class="lobby-manager-players">
                     <!-- Players will be rendered here -->
                 </div>
-            </div>
-
-            <div class="lobby-manager-footer">
-                <button id="lobbyManagerStartBtn" class="menu-btn primary hidden">Start Game</button>
             </div>
         </div>
     </section>
@@ -234,7 +233,7 @@
     <script type="module" src="/client/client-network.js"></script>
     <script type="module" src="/client/main-menu.js"></script>
     <script type="module" src="/client/lobby-manager.js"></script>
-    <script src="ui-system.js"></script>
+    <script src="client/ui/command-card.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

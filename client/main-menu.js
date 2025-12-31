@@ -206,18 +206,18 @@ export class MainMenu {
     }
 
     updateConnectionStatus(connected, connecting = false) {
-        if (!this.statusIndicator || !this.statusText) return;
-        
+        if (!this.statusIndicator) return;
+
         this.statusIndicator.className = 'status-indicator';
         if (connected) {
             this.statusIndicator.classList.add('connected');
-            this.statusText.textContent = 'Connected';
+            if (this.statusText) this.statusText.textContent = 'Online';
         } else if (connecting) {
             this.statusIndicator.classList.add('connecting');
-            this.statusText.textContent = 'Connecting...';
+            if (this.statusText) this.statusText.textContent = 'Connecting...';
         } else {
             this.statusIndicator.classList.add('disconnected');
-            this.statusText.textContent = 'Disconnected';
+            if (this.statusText) this.statusText.textContent = 'Offline';
         }
     }
 }

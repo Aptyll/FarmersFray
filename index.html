@@ -38,12 +38,14 @@
                 <div class="main-menu-section">
                     <div class="section-header">
                         <div class="section-actions">
-                            <button id="createLobbyBtn" class="menu-btn" title="Create Lobby">Create Lobby</button>
+                            <div class="action-buttons">
+                                <button id="createLobbyBtn" class="menu-btn" title="Create Lobby">Create Lobby</button>
+                                <button id="refreshLobbiesBtn" class="menu-btn" title="Refresh Lobbies">Refresh Lobbies</button>
+                            </div>
                             <div class="connection-status" id="connectionStatus">
                                 <span class="status-indicator disconnected"></span>
-                                <span class="status-text">Disconnected</span>
+                                <span class="status-text">Offline</span>
                             </div>
-                            <button id="refreshLobbiesBtn" class="menu-btn" title="Refresh Lobbies">Refresh Lobbies</button>
                         </div>
                     </div>
                     <div id="lobbyList" class="lobby-list">

@@ -139,9 +139,12 @@ export class PlayerManager {
             return;
         }
 
-        // Only host can change teams
-        if (!this.roomManager.isHost(playerInfo.roomId, playerInfo.playerId)) {
-            socket.emit('ERROR', { message: 'Only the host can change teams' });
+        // Only host can change other players' teams, but players can change their own teams
+        const isHost = this.roomManager.isHost(playerInfo.roomId, playerInfo.playerId);
+        const isChangingOwnTeam = targetPlayerId === playerInfo.playerId;
+
+        if (!isHost && !isChangingOwnTeam) {
+            socket.emit('ERROR', { message: 'Only the host can change other players\' teams' });
             return;
         }
 

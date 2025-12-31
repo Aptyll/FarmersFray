@@ -12,8 +12,14 @@ export class LobbyManager {
         this.currentLobbyState = null;
         this.isHost = false;
         this.myPlayerId = null;
-        
+        this.teamChangeCooldown = 0; // Timestamp when cooldown expires
+
         this.setupEventListeners();
+
+        // Start cooldown update interval
+        this.cooldownInterval = setInterval(() => {
+            this.updateCooldownDisplay();
+        }, 1000);
     }
 
     setupEventListeners() {
@@ -49,6 +55,12 @@ export class LobbyManager {
     hide() {
         if (!this.overlay) return;
         this.overlay.classList.add('hidden');
+
+        // Clear cooldown interval
+        if (this.cooldownInterval) {
+            clearInterval(this.cooldownInterval);
+            this.cooldownInterval = null;
+        }
     }
 
     updateUI() {
@@ -111,7 +123,11 @@ export class LobbyManager {
 
         // Get team info from constants
         const teamInfo = TEAM_INFO[teamId] || { name: `Team ${teamId}`, color: '#fff', displayName: `Team ${teamId}` };
-        
+
+        // Find first player in team to get their color, or use team color as fallback
+        const firstPlayer = players.length > 0 ? players[0] : null;
+        const teamColor = firstPlayer ? PLAYER_COLORS[firstPlayer.playerId] || teamInfo.color : teamInfo.color;
+
         // Apply team color to section
         section.style.borderColor = `${teamInfo.color}80`;
         section.style.backgroundColor = `${teamInfo.color}10`;
@@ -120,10 +136,12 @@ export class LobbyManager {
         teamHeader.className = 'lobby-team-header';
         teamHeader.innerHTML = `
             <span>
-                <span class="lobby-team-name" style="color: ${teamInfo.color}">${teamInfo.displayName}</span>
-                <span class="lobby-team-subtitle" style="color: ${teamInfo.color}80; font-size: 12px;">${teamInfo.name}</span>
+                <span class="lobby-team-name" style="color: ${teamColor}">${teamInfo.name}</span>
             </span>
-            <span class="lobby-team-count">${players.length}/2</span>
+            <div class="lobby-team-info">
+                <span class="lobby-cooldown-text"></span>
+                <span class="lobby-team-count">${players.length}/2</span>
+            </div>
         `;
         section.appendChild(teamHeader);
 
@@ -178,40 +196,113 @@ export class LobbyManager {
         }
 
         section.appendChild(playersList);
+
+        // Add click handler for non-host players to join teams
+        if (!this.isHost && this.myPlayerId) {
+            const currentTeamId = this.currentLobbyState.players.find(p => p.playerId === this.myPlayerId)?.team;
+
+            // Only add click handler if player is not already in this team
+            if (currentTeamId !== teamId) {
+                section.addEventListener('click', (e) => {
+                    // Don't trigger if clicking on existing players or kick buttons
+                    if (e.target.closest('.lobby-player-item') || e.target.closest('.lobby-player-kick')) {
+                        return;
+                    }
+
+                    this.handleJoinTeam(teamId);
+                });
+            }
+        }
+
+        // Always update cooldown display for this team
+        this.updateTeamCooldownDisplay(section, teamHeader, teamId);
+
         return section;
+    }
+
+    updateTeamCooldownDisplay(teamSection, teamHeader, teamId) {
+        const cooldownText = teamHeader.querySelector('.lobby-cooldown-text');
+
+        if (!this.isHost && this.myPlayerId) {
+            const currentTeamId = this.currentLobbyState?.players.find(p => p.playerId === this.myPlayerId)?.team;
+
+            // Only show cooldown for teams the player can join
+            if (currentTeamId !== teamId) {
+                if (this.teamChangeCooldown > Date.now()) {
+                    const remainingTime = Math.ceil((this.teamChangeCooldown - Date.now()) / 1000);
+                    cooldownText.textContent = `(${remainingTime}s)`;
+                    cooldownText.classList.add('active');
+                    teamSection.classList.add('cooldown-active');
+                } else {
+                    cooldownText.textContent = '';
+                    cooldownText.classList.remove('active');
+                    teamSection.classList.remove('cooldown-active');
+                }
+            } else {
+                cooldownText.textContent = '';
+                cooldownText.classList.remove('active');
+                teamSection.classList.remove('cooldown-active');
+            }
+        } else {
+            cooldownText.textContent = '';
+            cooldownText.classList.remove('active');
+            teamSection.classList.remove('cooldown-active');
+        }
+    }
+
+    updateCooldownDisplay() {
+        if (!this.playersContainer) return;
+
+        const teamSections = this.playersContainer.querySelectorAll('.lobby-team-section');
+        teamSections.forEach(section => {
+            const teamId = parseInt(section.dataset.team);
+            const teamHeader = section.querySelector('.lobby-team-header');
+            if (teamHeader) {
+                this.updateTeamCooldownDisplay(section, teamHeader, teamId);
+            }
+        });
     }
 
     createPlayerItem(player) {
         const item = document.createElement('div');
-        item.className = `lobby-player-item ${player.ready ? 'ready' : ''}`;
-        item.dataset.playerId = player.playerId;
-        item.draggable = this.isHost && player.playerId !== this.myPlayerId;
 
         const isMe = player.playerId === this.myPlayerId;
         const isHost = player.playerId === this.currentLobbyState.hostPlayerId;
-        
+
         // Get player color from constants (matches game colors)
         const playerColor = PLAYER_COLORS[player.playerId] || '#fff';
 
+        // Build class list for visual indicators
+        let classList = 'lobby-player-item';
+        if (isHost) classList += ' host-player';
+        if (isMe) classList += ' my-player';
+        item.className = classList;
+
+        // Add background color for current player
+        if (isMe) {
+            // Convert HSL color to HSLA with alpha for background
+            const hslaColor = playerColor.replace('hsl(', 'hsla(').replace(')', ', 0.125)'); // 0.125 = 20 in hex alpha
+            item.style.backgroundColor = hslaColor;
+        }
+
+        item.dataset.playerId = player.playerId;
+        item.draggable = this.isHost && player.playerId !== this.myPlayerId;
+
         item.innerHTML = `
             <div class="lobby-player-info">
-                <span class="lobby-player-name" style="color: ${playerColor}">${player.name || `Player ${player.playerId}`}</span>
-                ${isHost ? '<span class="lobby-player-badge host">Host</span>' : ''}
-                ${isMe ? '<span class="lobby-player-badge you">You</span>' : ''}
+                <span class="lobby-player-name" style="color: ${playerColor}">player${player.playerId}</span>
             </div>
             <div class="lobby-player-status">
-                ${player.ready ? '<span class="ready-indicator">✓ Ready</span>' : '<span class="ready-indicator not-ready">Not Ready</span>'}
-                ${isMe ? `<button class="lobby-ready-toggle ${player.ready ? 'ready' : ''}" title="${player.ready ? 'Mark Not Ready' : 'Mark Ready'}">${player.ready ? 'Not Ready' : 'Ready'}</button>` : ''}
+                <input type="checkbox" class="lobby-ready-checkbox" ${player.ready ? 'checked' : ''} ${!isMe ? 'disabled' : ''} title="${player.ready ? 'Mark Not Ready' : 'Mark Ready'}" style="--player-color: ${playerColor}">
             </div>
-            ${this.isHost && !isMe ? '<button class="lobby-player-kick" title="Kick Player">×</button>' : ''}
+            ${this.isHost && !isMe ? '<button class="lobby-player-kick" title="Kick Player">Kick</button>' : ''}
         `;
 
-        // Add ready toggle button handler (for current player)
-        const readyToggleBtn = item.querySelector('.lobby-ready-toggle');
-        if (readyToggleBtn) {
-            readyToggleBtn.addEventListener('click', () => {
-                const newReadyState = !player.ready;
-                this.handleToggleReady(newReadyState);
+        // Add ready toggle checkbox handler (for current player only)
+        const readyCheckbox = item.querySelector('.lobby-ready-checkbox');
+        if (readyCheckbox && isMe) {
+            readyCheckbox.addEventListener('change', () => {
+                this.handleToggleReady(readyCheckbox.checked);
             });
         }
 
@@ -219,7 +310,7 @@ export class LobbyManager {
         const kickBtn = item.querySelector('.lobby-player-kick');
         if (kickBtn) {
             kickBtn.addEventListener('click', () => {
-                if (confirm(`Kick ${player.name || `Player ${player.playerId}`}?`)) {
+                if (confirm(`Kick player${player.playerId}?`)) {
                     this.handleKickPlayer(player.playerId);
                 }
             });
@@ -242,40 +333,8 @@ export class LobbyManager {
             });
         }
 
-        // Add drop handlers to allow swapping players (for host)
-        if (this.isHost) {
-            item.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (!isMe) {
-                    item.classList.add('drag-over');
-                }
-            });
-
-            item.addEventListener('dragleave', () => {
-                item.classList.remove('drag-over');
-            });
-
-            item.addEventListener('drop', (e) => {
-                e.preventDefault();
-                item.classList.remove('drag-over');
-                
-                if (isMe) return; // Can't drop on yourself
-                
-                try {
-                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                    const targetPlayerId = player.playerId;
-                    const targetTeamId = player.team;
-                    
-                    // If dragging to a different player, swap or move
-                    if (data.playerId && data.playerId !== targetPlayerId) {
-                        this.handleChangeTeam(data.playerId, targetTeamId, targetPlayerId);
-                    }
-                } catch (err) {
-                    console.error('Error handling drop on player:', err);
-                }
-            });
-        }
+        // Disable dropping on existing players to prevent displacement bugs
+        // Players can only be dropped on empty slots or empty team areas
 
         // Keep context menu as alternative method
         if (this.isHost && !isMe) {
@@ -383,6 +442,39 @@ export class LobbyManager {
         window.clientNetwork.changePlayerTeam(playerId, newTeamId, targetSlotPlayerId);
     }
 
+    handleJoinTeam(teamId) {
+        if (!window.clientNetwork || this.isHost || !this.myPlayerId) return;
+
+        // Check cooldown
+        if (this.teamChangeCooldown > Date.now()) {
+            const remainingTime = Math.ceil((this.teamChangeCooldown - Date.now()) / 1000);
+            console.log(`Team change on cooldown. ${remainingTime} seconds remaining.`);
+            return;
+        }
+
+        // Check if team is full
+        const teamPlayers = this.currentLobbyState.players.filter(p => p.team === teamId);
+        if (teamPlayers.length >= 2) {
+            console.log(`Team ${teamId} is full.`);
+            return;
+        }
+
+        // Set cooldown (10 seconds)
+        this.teamChangeCooldown = Date.now() + 10000;
+
+        // Find available slot
+        const teamPlayerIds = teamId === 1 ? [1, 2] :
+                             teamId === 2 ? [3, 4] :
+                             teamId === 3 ? [5, 6] : [7, 8];
+        const usedIds = teamPlayers.map(p => p.playerId);
+        const availableId = teamPlayerIds.find(id => !usedIds.includes(id));
+
+        if (availableId) {
+            console.log(`Joining team ${teamId} in slot ${availableId}`);
+            window.clientNetwork.changePlayerTeam(this.myPlayerId, teamId, availableId);
+        }
+    }
+
     handleToggleReady(ready) {
         if (!window.clientNetwork) return;
 
@@ -425,6 +517,7 @@ export class LobbyManager {
     updateLobbyState(lobbyState) {
         this.currentLobbyState = lobbyState;
         this.isHost = lobbyState.hostPlayerId === lobbyState.myPlayerId;
+        this.myPlayerId = lobbyState.myPlayerId;
         this.updateUI();
     }
 }

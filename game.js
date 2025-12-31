@@ -7204,20 +7204,10 @@ function drawBackground(ctx) {
     const endTileX = Math.ceil((camera.x + canvas.width) / TILE_WIDTH);
     const endTileY = Math.ceil((camera.y + canvas.height) / TILE_HEIGHT);
 
-    // Draw enhanced gameplay boundary with glow effect
+    // Draw clean gameplay boundary line
     ctx.save();
-    
-    // Outer glow (softer, larger)
-    ctx.strokeStyle = BOUNDARY_INDICATOR_GLOW;
-    ctx.lineWidth = BOUNDARY_LINE_WIDTH + 4;
-    ctx.strokeRect(
-        gameplayRect.x,
-        gameplayRect.y,
-        gameplayRect.width,
-        gameplayRect.height
-    );
-    
-    // Main boundary line (brighter, thicker)
+
+    // Main boundary line (clean, singular)
     ctx.strokeStyle = BOUNDARY_INDICATOR_COLOR;
     ctx.lineWidth = BOUNDARY_LINE_WIDTH;
     ctx.strokeRect(

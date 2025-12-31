@@ -300,7 +300,6 @@ export class ClientNetwork {
         });
 
         this.socket.emit('CREATE_LOBBY', {
-            lobbyName: lobbyName || `Lobby ${Date.now()}`,
             playerName: playerName || `Player ${Date.now()}`
         });
     }

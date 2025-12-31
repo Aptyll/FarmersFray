@@ -3,8 +3,6 @@
 export class MainMenu {
     constructor() {
         this.overlay = document.getElementById('mainMenuOverlay');
-        this.playerNameInput = document.getElementById('playerNameInput');
-        this.lobbyNameInput = document.getElementById('lobbyNameInput');
         this.createLobbyBtn = document.getElementById('createLobbyBtn');
         this.refreshLobbiesBtn = document.getElementById('refreshLobbiesBtn');
         this.lobbyList = document.getElementById('lobbyList');
@@ -22,39 +20,14 @@ export class MainMenu {
         
         this.lobbies = [];
         this.refreshInterval = null;
-        
-        // Load player name from localStorage
-        this.loadPlayerName();
-        
+
         // Show menu by default
         this.show();
         
         this.setupEventListeners();
     }
 
-    loadPlayerName() {
-        const savedName = localStorage.getItem('playerName');
-        if (this.playerNameInput && savedName) {
-            this.playerNameInput.value = savedName;
-        }
-    }
-
-    savePlayerName() {
-        if (this.playerNameInput) {
-            const name = this.playerNameInput.value.trim();
-            if (name) {
-                localStorage.setItem('playerName', name);
-            } else {
-                localStorage.removeItem('playerName');
-            }
-        }
-    }
-
     getPlayerName() {
-        if (this.playerNameInput) {
-            const name = this.playerNameInput.value.trim();
-            return name || `Player ${Date.now()}`;
-        }
         return `Player ${Date.now()}`;
     }
 
@@ -64,24 +37,6 @@ export class MainMenu {
         }
         if (this.refreshLobbiesBtn) {
             this.refreshLobbiesBtn.addEventListener('click', () => this.refreshLobbies());
-        }
-        if (this.lobbyNameInput) {
-            this.lobbyNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.handleCreateLobby();
-                }
-            });
-        }
-        if (this.playerNameInput) {
-            // Save player name to localStorage when it changes
-            this.playerNameInput.addEventListener('blur', () => {
-                this.savePlayerName();
-            });
-            this.playerNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.playerNameInput.blur();
-                }
-            });
         }
     }
 
@@ -100,26 +55,18 @@ export class MainMenu {
         this.stopAutoRefresh();
     }
 
-    handleCreateLobby() {
-        const lobbyName = this.lobbyNameInput.value.trim();
-        if (!lobbyName) {
-            alert('Please enter a lobby name');
-            return;
-        }
 
+    handleCreateLobby() {
         if (!window.clientNetwork || !window.clientNetwork.isConnected()) {
             alert('Not connected to server. Please wait...');
             return;
         }
 
-        // Save player name before creating lobby
-        this.savePlayerName();
         const playerName = this.getPlayerName();
 
         // Create lobby and join it
-        window.clientNetwork.createLobby(lobbyName, playerName, (success, roomId) => {
+        window.clientNetwork.createLobby(null, playerName, (success, roomId) => {
             if (success) {
-                this.lobbyNameInput.value = '';
                 this.hide();
                 // The pregame overlay will be shown by the game
             } else {
@@ -144,7 +91,9 @@ export class MainMenu {
         this.lobbyList.innerHTML = '';
 
         if (lobbies.length === 0) {
-            this.lobbyList.innerHTML = '<div class="lobby-list-empty">No lobbies available. Create one to get started!</div>';
+            // Show placeholder lobby
+            const placeholderItem = this.createPlaceholderLobbyItem();
+            this.lobbyList.appendChild(placeholderItem);
             return;
         }
 
@@ -165,44 +114,15 @@ export class MainMenu {
         name.className = 'lobby-item-name';
         name.textContent = lobby.name || lobby.id;
 
-        const details = document.createElement('div');
-        details.className = 'lobby-item-details';
-
-        const players = document.createElement('div');
-        players.className = 'lobby-item-players';
-        players.innerHTML = `<span>👥</span> <span>${lobby.playerCount || 0}/8</span>`;
-
-        const spectators = document.createElement('div');
-        spectators.className = 'lobby-item-spectators';
-        spectators.innerHTML = `<span>👁️</span> <span>${lobby.spectatorCount || 0}</span>`;
-
-        details.appendChild(players);
-        details.appendChild(spectators);
-
         info.appendChild(name);
-        info.appendChild(details);
-
-        const status = document.createElement('div');
-        status.className = `lobby-item-status ${lobby.state.toLowerCase()}`;
-        
-        let statusText = lobby.state;
-        if (lobby.state === 'WAITING') {
-            statusText = 'Waiting';
-        } else if (lobby.state === 'PLAYING') {
-            statusText = 'In Game';
-        } else if (lobby.state === 'COUNTDOWN') {
-            statusText = 'Starting';
-        }
-
-        if (lobby.playerCount >= 8 && lobby.state === 'WAITING') {
-            status.className = 'lobby-item-status full';
-            statusText = 'Full';
-        }
-
-        status.textContent = statusText;
 
         const actions = document.createElement('div');
         actions.className = 'lobby-item-actions';
+
+        // Add player count beside join button
+        const playerCount = document.createElement('span');
+        playerCount.className = 'lobby-item-player-count';
+        playerCount.textContent = `${lobby.playerCount || 0}/8`;
 
         const joinBtn = document.createElement('button');
         joinBtn.className = 'menu-btn';
@@ -212,10 +132,10 @@ export class MainMenu {
             this.handleJoinLobby(lobby.id, lobby.state === 'PLAYING');
         });
 
+        actions.appendChild(playerCount);
         actions.appendChild(joinBtn);
 
         item.appendChild(info);
-        item.appendChild(status);
         item.appendChild(actions);
 
         // Click entire item to join
@@ -228,14 +148,43 @@ export class MainMenu {
         return item;
     }
 
+    createPlaceholderLobbyItem() {
+        const item = document.createElement('div');
+        item.className = 'lobby-item lobby-item-placeholder';
+
+        const info = document.createElement('div');
+        info.className = 'lobby-item-info';
+
+        const name = document.createElement('div');
+        name.className = 'lobby-item-name placeholder-shimmer';
+
+        info.appendChild(name);
+
+        const actions = document.createElement('div');
+        actions.className = 'lobby-item-actions';
+
+        const playerCount = document.createElement('span');
+        playerCount.className = 'lobby-item-player-count placeholder-shimmer';
+
+        const joinBtn = document.createElement('button');
+        joinBtn.className = 'menu-btn placeholder-shimmer';
+        joinBtn.disabled = true;
+
+        actions.appendChild(playerCount);
+        actions.appendChild(joinBtn);
+
+        item.appendChild(info);
+        item.appendChild(actions);
+
+        return item;
+    }
+
     handleJoinLobby(roomId, asSpectator = false) {
         if (!window.clientNetwork || !window.clientNetwork.isConnected()) {
             alert('Not connected to server');
             return;
         }
 
-        // Save player name before joining
-        this.savePlayerName();
         const playerName = this.getPlayerName();
 
         window.clientNetwork.joinRoom(roomId, playerName, asSpectator);

@@ -33,32 +33,16 @@
     <!-- Main Menu Overlay -->
     <section id="mainMenuOverlay" class="main-menu-overlay">
         <div class="main-menu-panel">
-            <h1 class="main-menu-title">Farmers Fray</h1>
-            <p class="main-menu-subtitle">MOBA × RTS Hybrid</p>
 
             <div class="main-menu-content">
                 <div class="main-menu-section">
-                    <h3 class="section-title">Player Profile</h3>
-                    <div class="player-name-form">
-                        <input type="text" id="playerNameInput" class="lobby-input" placeholder="Your Name" maxlength="20">
-                    </div>
-                </div>
-
-                <div class="main-menu-section">
-                    <h3 class="section-title">Create Lobby</h3>
-                    <div class="lobby-create-form">
-                        <input type="text" id="lobbyNameInput" class="lobby-input" placeholder="Lobby Name" maxlength="30">
-                        <button id="createLobbyBtn" class="menu-btn primary">Create Lobby</button>
-                    </div>
-                </div>
-
-                <div class="main-menu-section">
                     <div class="section-header">
-                        <h3 class="section-title">Available Lobbies</h3>
-                        <button id="refreshLobbiesBtn" class="menu-btn icon" title="Refresh">↻</button>
+                        <div class="section-actions">
+                            <button id="createLobbyBtn" class="menu-btn" title="Create Lobby">Create Lobby</button>
+                            <button id="refreshLobbiesBtn" class="menu-btn" title="Refresh Lobbies">Refresh Lobbies</button>
+                        </div>
                     </div>
                     <div id="lobbyList" class="lobby-list">
-                        <div class="lobby-list-empty">No lobbies available. Create one to get started!</div>
                     </div>
                 </div>
             </div>

@@ -74,8 +74,8 @@ export class PlayerManager {
     }
 
     handleCreateLobby(socket, data) {
-        const { lobbyName, playerName } = data || {};
-        
+        const { playerName } = data || {};
+
         // Find available player slot for host
         let hostPlayerId = null;
         for (let id = 1; id <= 8; id++) {
@@ -98,7 +98,10 @@ export class PlayerManager {
             return;
         }
 
-        const room = this.roomManager.createRoom(null, lobbyName || `Lobby ${Date.now()}`, hostPlayerId);
+        // Generate sequential lobby name (resets on server restart)
+        const lobbyNumber = this.roomManager.rooms.size + 1;
+        const autoLobbyName = `Lobby ${lobbyNumber}`;
+        const room = this.roomManager.createRoom(null, autoLobbyName, hostPlayerId);
         
         // Join the newly created room as host
         this.handleJoinRoom(socket, { 
